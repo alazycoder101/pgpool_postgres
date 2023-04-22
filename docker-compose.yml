@@ -1,0 +1,29 @@
+version: ‘3’
+services:
+  pg:
+    image: postgres:15.2-alpine
+    container_name: pg
+    environment:
+      - POSTGRES_PASSWORD="${POSTGRES_PASSWORD-password}"
+    volumes:
+      - db:/var/lib/postgresql/data
+  pgpool:
+    container_name: pgpool
+    image: pgpool/pgpool:4.4.2
+    links:
+      - pg
+      - pg-replica
+    volumes:
+      - ./pgpool/pgpool.conf:/etc/pgpool2/pgpool.conf
+  pg-replica:
+    container_name: pg-replica
+    image: postgres:15.2-alpine
+    volumes:
+      - db-replica:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD="${POSTGRES_PASSWORD-password}"
+volumes:
+  db:
+    driver: local
+  db-replica:
+    driver: local
