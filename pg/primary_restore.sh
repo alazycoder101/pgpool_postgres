@@ -15,8 +15,8 @@ CREATE USER $customUserName WITH PASSWORD '$POSTGRES_MYAPP_PASSWORD';
 GRANT ALL PRIVILEGES ON DATABASE "$customDatabaseName" to $customUserName;
 EOSQL
 
-cd /tmp/
-unzip dvdrental.zip
+cd /tmp/data
+unzip -o dvdrental.zip
 pg_restore --no-acl -d $customDatabaseName dvdrental.tar
 
 echo "$dt - Init script is completed";
