@@ -4,8 +4,15 @@ services:
     image: postgres:15.2-alpine
     container_name: pg
     environment:
-      - POSTGRES_PASSWORD="${POSTGRES_PASSWORD-password}"
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD-password}
+      - REPLICATION_PASSWORD=${POSTGRES_PASSWORD-password}
+    ports:
+      - "5432:5432"
     volumes:
+      - ./pg/postgres.conf:/config/postgres.conf
+      - ./pg/pg_hba.conf:/config/pg_hba.conf
+      - ./pg/primary_init_script.sh:/docker-entrypoint-initdb.d/primary_init_script.sh
+      - ./pg/primary_create_replica_role.sh:/docker-entrypoint-initdb.d/primary_create_replica_role.sh
       - db:/var/lib/postgresql/data
   pgpool:
     container_name: pgpool
@@ -13,15 +20,23 @@ services:
     links:
       - pg
       - pg-replica
+    ports:
+      - "9999:9999"
     volumes:
-      - ./pgpool/pgpool.conf:/etc/pgpool2/pgpool.conf
+      - ./pgpool/pgpool.conf:/config/pgpool.conf
   pg-replica:
     container_name: pg-replica
     image: postgres:15.2-alpine
     volumes:
+      - ./pg-replica/postgres.conf:/config/postgres.conf
+      - ./pg-replica/pg_hba.conf:/config/pg_hba.conf
+      - ./pg-replica/copy_primary_data_to_replica.sh:/docker-entrypoint-initdb.d/copy_primary_data_to_replica.sh
       - db-replica:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
     environment:
-      - POSTGRES_PASSWORD="${POSTGRES_PASSWORD-password}"
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD-password}
+      - REPLICATION_PASSWORD=${POSTGRES_PASSWORD-password}
 volumes:
   db:
     driver: local
