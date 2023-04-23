@@ -34,6 +34,22 @@ services:
       - "9999:9999"
     volumes:
       - ./pgpool/pgpool.conf:/config/pgpool.conf
+  pg-replica-init:
+    container_name: pg-replica-init
+    image: postgres:15.2-alpine
+    environment:
+      - PRIMARY_HOST_NAME=pg
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD-password}
+      - PGPASSWORD=${POSTGRES_PASSWORD-password}
+      - REPLICATION_PASSWORD=${POSTGRES_PASSWORD-password}
+    command: |
+      sh -c '/tmp/copy_primary_data_to_replica.sh'
+    volumes:
+      - ./pg-replica/copy_primary_data_to_replica.sh:/tmp/copy_primary_data_to_replica.sh
+      - db-replica:/var/lib/postgresql/data
+    depends_on:
+      pg:
+        condition: service_healthy # service_started/service_healthy/service_completed_sucessfully
   pg-replica:
     container_name: pg-replica
     image: postgres:15.2-alpine
@@ -45,7 +61,6 @@ services:
       - PGPASSWORD=${POSTGRES_PASSWORD-password}
       - REPLICATION_PASSWORD=${POSTGRES_PASSWORD-password}
     command: |
-      sh -c '/tmp/copy_primary_data_to_replica.sh'
       postgres -c config_file=/etc/postgres.conf -c hba_file=/etc/pg_hba.conf
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
@@ -55,11 +70,10 @@ services:
     volumes:
       - ./pg-replica/postgres.conf:/etc/postgres.conf
       - ./pg-replica/pg_hba.conf:/etc/pg_hba.conf
-      - ./pg-replica/copy_primary_data_to_replica.sh:/tmp/copy_primary_data_to_replica.sh
       - db-replica:/var/lib/postgresql/data
     depends_on:
-      pg:
-        condition: service_started # service_started/service_healthy/service_completed_sucessfully
+      pg-replica-init:
+        condition: service_completed_successfully # service_started/service_healthy/service_completed_sucessfully
 volumes:
   db:
     driver: local
