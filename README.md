@@ -17,3 +17,9 @@ wget https://www.postgresqltutorial.com/wp-content/uploads/2019/05/dvdrental.zip
 unzip dvdrental.zip
 pg_restore --no-acl -d dvdrental dvdrental.tar
 ```
+
+### Run
+```bash
+docker compose up -d
+docker compose down --volumes
+```
