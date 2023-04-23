@@ -5,9 +5,15 @@ services:
     container_name: pg
     environment:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD-password}
+      - PGPASSWORD=${POSTGRES_PASSWORD-password}
       - POSTGRES_REPLICATION_PASSWORD=${POSTGRES_REPLICATION_PASSWORD-password}
     command: |
       postgres -c config_file=/etc/postgres.conf -c hba_file=/etc/pg_hba.conf
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     ports:
       - "5432:5432"
     volumes:
@@ -41,6 +47,11 @@ services:
     command: |
       sh -c '/tmp/copy_primary_data_to_replica.sh'
       postgres -c config_file=/etc/postgres.conf -c hba_file=/etc/pg_hba.conf
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     volumes:
       - ./pg-replica/postgres.conf:/etc/postgres.conf
       - ./pg-replica/pg_hba.conf:/etc/pg_hba.conf
