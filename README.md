@@ -1,5 +1,10 @@
 # pgpool + PostgreSQL
 ## pgpool
+### load balancing 
+
+```
+select "rental".* from "rental" where "rental"."rental_id"=-22 order by "rental"."rental_id" asc;
+```
 
 ## PostgreSQL
 
@@ -23,3 +28,4 @@ pg_restore --no-acl -d dvdrental dvdrental.tar
 docker compose up -d
 docker compose down --volumes
 ```
+
