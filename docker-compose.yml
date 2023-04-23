@@ -32,8 +32,11 @@ services:
       - pg-replica
     ports:
       - "9999:9999"
+    command: |
+      /bin/start.sh
     volumes:
       - ./pgpool/pgpool.conf:/config/pgpool.conf
+      - ./pgpool/start.sh:/bin/start.sh
   pg-replica-init:
     container_name: pg-replica-init
     image: postgres:15.2-alpine
